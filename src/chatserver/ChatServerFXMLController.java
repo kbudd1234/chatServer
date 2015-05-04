@@ -34,8 +34,8 @@ public class ChatServerFXMLController implements Initializable {
         new Thread( () -> {
       try {
         // Create a server socket
-        ServerSocket serverSocket = new ServerSocket(8005);
-        txtChat.appendText("MultiThreadServer started at " 
+        ServerSocket serverSocket = new ServerSocket(8002);
+        txtChat.appendText("ChatServer started at " 
           + new Date() + '\n');
     
         while (true) {
@@ -45,10 +45,10 @@ public class ChatServerFXMLController implements Initializable {
           Platform.runLater( () -> {
             // Find and display the client's host name, and IP address
             InetAddress inetAddress = socket.getInetAddress();
-            txtChat.appendText("New clients host name is "
-              + inetAddress.getHostName() + " IP Address is "
-              + inetAddress.getHostAddress() + " " 
-              + serverSocket.getLocalPort() + " "
+            txtChat.appendText("New client's host name is "
+              + inetAddress.getHostName() + ". IP Address is "
+              + inetAddress.getHostAddress() + ". Port " 
+              + serverSocket.getLocalPort() + ". Time "
                     + new Date() + '\n');
             
           });
@@ -76,29 +76,36 @@ public class ChatServerFXMLController implements Initializable {
     @Override
     public void run() {
       try {
+          
         // Create data input and output streams
         DataInputStream inputFromClient = new DataInputStream(
           socket.getInputStream());
-        DataOutputStream outputToClient = new DataOutputStream(
-          socket.getOutputStream());
+        DataOutputStream outputToClient = new DataOutputStream(socket.getOutputStream());
+        //PrintStream output = new PrintStream(socket.getOutputStream());
 
         // Continuously serve the client
         while (true) {
           
           // Receive a message from a client
           String message = inputFromClient.readUTF();
-
-          // broadcast message to all 
-          outputToClient.writeUTF(message + '\n');
+          
+          // Echo message to all clients
+          outputToClient.writeUTF(message);
+          outputToClient.flush();
+          //output.println(message);
           
           Platform.runLater(() -> {
-            //txtChat.appendText(name + ": " + message + '\n');
+            txtChat.appendText(message + '\n');
+            
           });
+          
         }
+       
       }
       catch(Exception ex) {
         ex.printStackTrace();
       }
+      
     }
   }
 }
