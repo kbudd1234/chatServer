@@ -8,9 +8,7 @@ package chatserver;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetAddress;
-import java.net.Proxy;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
@@ -75,6 +73,7 @@ public class ChatServerFXMLController implements Initializable {
     /** Construct a thread */
     public HandleAClient(Socket socket) {
       this.socket = socket;
+      clientList.add(socket); 
     }
 
     /** Run a thread */
@@ -84,9 +83,8 @@ public class ChatServerFXMLController implements Initializable {
           
         // Create data input and output streams
         DataInputStream inputFromClient = new DataInputStream(socket.getInputStream());
-        DataOutputStream outputToClient = new DataOutputStream(socket.getOutputStream());
+        DataOutputStream outputToClient;
         
-        clientList.add(outputToClient); 
         // Continuously serve the client
         while (true) {
           
@@ -94,13 +92,16 @@ public class ChatServerFXMLController implements Initializable {
           String message = inputFromClient.readUTF();
           
           // Echo message to all clients
-          for (Object client : clientList) {
-                outputToClient = (DataOutputStream) client;
+          for (Object client : clientList) 
+          {
+                //new Thread(new HandleAClient(socket)).start();
+                socket = (Socket) client;
+                outputToClient = new DataOutputStream(socket.getOutputStream());
                 outputToClient.writeUTF(message);
                 outputToClient.flush();
-            }
+          }
+          
         }
-        
       }
       catch(Exception ex) {
       }
@@ -108,4 +109,7 @@ public class ChatServerFXMLController implements Initializable {
       
     }
   }
+  
 }
+   
+ 
