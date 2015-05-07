@@ -34,7 +34,11 @@ public class ChatServerFXMLController implements Initializable {
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        
+        createThread();
 
+  }
+    private void createThread() {
         new Thread( () -> {
       try {
         // Create a server socket
@@ -45,6 +49,7 @@ public class ChatServerFXMLController implements Initializable {
         while (true) {
           // Listen for a new connection request
           Socket socket = serverSocket.accept();
+          //clientList.add(new DataOutputStream(socket.getOutputStream()));
           
           Platform.runLater( () -> {
             // display the client's host name, IP address, port and connection time
@@ -64,7 +69,7 @@ public class ChatServerFXMLController implements Initializable {
         System.err.println(ex);
       }
     }).start();
-  }
+    }
         
   // Define the thread class for handling new connection
   class HandleAClient implements Runnable {
@@ -73,7 +78,6 @@ public class ChatServerFXMLController implements Initializable {
     /** Construct a thread */
     public HandleAClient(Socket socket) {
       this.socket = socket;
-      clientList.add(socket); 
     }
 
     /** Run a thread */
@@ -83,7 +87,9 @@ public class ChatServerFXMLController implements Initializable {
           
         // Create data input and output streams
         DataInputStream inputFromClient = new DataInputStream(socket.getInputStream());
-        DataOutputStream outputToClient;
+        DataOutputStream outputToClient = new DataOutputStream(socket.getOutputStream());
+        
+        clientList.add(outputToClient);
         
         // Continuously serve the client
         while (true) {
@@ -94,11 +100,9 @@ public class ChatServerFXMLController implements Initializable {
           // Echo message to all clients
           for (Object client : clientList) 
           {
-                //new Thread(new HandleAClient(socket)).start();
-                socket = (Socket) client;
-                outputToClient = new DataOutputStream(socket.getOutputStream());
-                outputToClient.writeUTF(message);
-                outputToClient.flush();
+            outputToClient = (DataOutputStream) client;
+            outputToClient.writeUTF(message);
+            outputToClient.flush();
           }
           
         }
